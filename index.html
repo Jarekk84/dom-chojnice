@@ -564,7 +564,7 @@ label('<b>3.0 m</b> to the east boundary (blank plant / garage wall)', local(11.
 label('<b>5.8 m</b> to the west boundary', local(-9.7,0.4,-1.0), 'ok');
 label('Garden <b>12.4 m</b>', local(2.6,0.3,9.5));
 label('Garden <b>10.5 m</b>', local(-4.4,0.3,10.5));
-label('House <b>16.34 × 18.09 m</b> · two storeys', local(1.4,7.6,-4.4), 'big');
+label('Footprint <b>16.34 × 18.09 m</b> overall · two-storey block <b>9.84 × 10.95 m</b>', local(1.4,7.6,-4.4), 'big');
 // ---------- model loading: the presentation shell is built from the construction model (no mesh file) ----------
 const bar = $('bar').firstElementChild, ltext = $('ltext');
 ltext.textContent = 'Budowanie domu…';
@@ -879,9 +879,9 @@ function offsetPoly(P, d){
 const conG = new THREE.Group(); conG.visible = false; house.add(conG);
 const capG = new THREE.Group(); house.add(capG);
 const conRoofParts = [];
-const STRUCT_FROM_CON = new Set(['icfOut','icfCore','icfIn','parapet','ring','lintel','lintelICF','rcbeam','upbeam','silka18','silka24','partition','lintelPrefab','thresholdBlock','slabEdge','stud','stair','infill','epsGarage']);
+const STRUCT_FROM_CON = new Set(['icfOut','icfCore','icfIn','parapet','ring','lintel','lintelICF','rcbeam','upbeam','silka18','silka24','partition','lintelPrefab','thresholdBlock','slabEdge','stud','stair','infill','epsGarage','steelBeam','steelPost']);
 const STRUCT_OLD_HIDE = new Set(['slips','icfOut','icfCore','icfIn','parapet','ring','lintel','rcbeam','upbeam','silka18','silka24','partition']);
-const STRUCT_MAT = { slips:'slips', basecoat:'slips', plinth:'slips', icfOut:'eps', icfIn:'eps', slabEdge:'eps', icfCore:'concrete', parapet:'concrete', ring:'ring', lintel:'lintel', lintelICF:'lintel', lintelPrefab:'lintel', rcbeam:'rcbeam', upbeam:'upbeam', silka18:'silka18', silka24:'silka24', partition:'partition', stud:'partition', stair:'concrete', infill:'concrete', epsGarage:'eps' };
+const STRUCT_MAT = { slips:'slips', basecoat:'slips', plinth:'slips', icfOut:'eps', icfIn:'eps', slabEdge:'eps', icfCore:'concrete', parapet:'concrete', ring:'ring', lintel:'lintel', lintelICF:'lintel', lintelPrefab:'lintel', rcbeam:'rcbeam', upbeam:'upbeam', silka18:'silka18', silka24:'silka24', partition:'partition', stud:'partition', stair:'concrete', infill:'concrete', epsGarage:'eps', steelBeam:'steel', steelPost:'steel' };
 let CON = null;
 const ROOFKEYS = new Set(['hc','pir','pirGutter','membrane','gutter','vcl','coping','ceilingBoard','mfPrimary','mfFurring','hanger','vipGutter','membraneCap','infill','outlet']);
 const FFP = new THREE.Box3();
