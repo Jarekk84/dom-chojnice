@@ -297,12 +297,12 @@ body.clean #pbar{opacity:.25;transition:opacity .3s} body.clean #pbar:hover{opac
       <li>Entrance: 2.0 m coat wardrobe, oak bench with shoe drawer, mirror, rail · <b>insulated secret door to the stair</b> in the veneer panelling</li>
       <li>Open plan 50 m²: kitchen on the east wall (sink centred under the window, tall banks each side), 3.0 m island with <b>BORA X Pure</b>, table for 10, U-sofa, <b>media wall</b> with Opti-myst fire and 75" TV on the spine, LED cove bulkhead</li>
       <li>Master suite: bed 180 × 210, TV wall · walk-in wardrobe · wheelchair wet room · 1.0 m pocket doors on one straight route</li>
-      <li>Utility: stacked Miele W1/T1, sink, worktop under the window, tall cupboards, pulley airer · plant room fully fitted (see Services)</li>
+      <li>Utility: side-by-side washer and dryer, continuous 3.30 m west worktop, sink, drawers and cleaning cupboard; east tall cupboards, pulley airer · plant room fully fitted (see Services)</li>
     </ul></details>
     <details><summary>First floor – a different theme</summary><ul class="changes">
       <li>Engineered oak floors (<b>Barlinek</b>), oak-slat headboard walls with LED coves, built-in wardrobes</li>
-      <li>Family bathroom: warm Calacatta porcelain slabs, built-in bath under the window, corner walk-in shower, floating vanity, round LED mirror, black brassware</li>
-      <li>FF master: U-shaped wardrobe run in the dressing alcove, 55" TV, south window 3.0 m · ensuite in graphite microcement with an oak-slat lit wall and a black basin</li>
+      <li>Family bathroom: warm Calacatta porcelain slabs, built-in bath under the window, 1800 × 900 walk-in shower with 1200 fixed and 600 return glass, WC centred at x 5.40 m, floating vanity, round LED mirror, black brassware</li>
+      <li>FF master B3: sliding landing door, L-shaped partition, His/Hers wardrobes, 1200 dresser, east-facing 1800 bed, fluted media wall and recessed 65" TV; south windows 1200 × 1200 and floor-level 1800 × 2300 PSK with Juliet guard · ensuite window moved south, existing finishes retained</li>
       <li>Hall: glass balustrade along the stair void, slot window to the north, UFH manifold M2 cupboard</li>
     </ul></details>
     <details id="prodsched"><summary>Product schedule – every item (right-click any object in the model for its card)</summary><div id="prodlist" class="note">Loading…</div></details>
@@ -978,6 +978,7 @@ function conMat(k){
   const c = CMAT[k] || [0xcccccc,0.8];
   let m;
   if (k==='glass') m = glassMat;
+  else if (k==='glassSatin') m = new THREE.MeshPhysicalMaterial({color:0xe9eef0,roughness:0.85,metalness:0,transparent:true,opacity:0.9});
   else if (k==='slips') m = slipMat;
   else m = new THREE.MeshStandardMaterial({ color:c[0], roughness:c[1], metalness: (k==='steel'||k==='steelLight'||k==='sillAlu'||k==='coping'||k==='frame') ? 0.4 : 0 });
   return conMatCache[k] = m;
@@ -1578,7 +1579,7 @@ fetch('design.json').then(r => r.json()).then(Dz => {
     const ffFloor = prism(S.ringsFF['0.45'], [hole], LV.FF.ffl-0.012, LV.FF.ffl-0.004, M('lvtOak')); worldUV(ffFloor.geometry,0,0,0); ffFloor.userData.lvl='FF'; intG.add(ffFloor);
     // void edge (slab edge seen from the stair) + the FF floor underside (GF ceiling) with the void
     const gfCeil = prism(S.rings['0.45'], [hole], LV.GF.ceil, LV.GF.ceil+0.02, M('ceiling')); gfCeil.castShadow = false; intG.add(gfCeil); ceilingParts.push(gfCeil); archRoofParts.push(gfCeil); gfCeil.userData.ffFloor = true;
-    const edge = prism(hole, [[[vd[0]+0.002,vd[2]+0.002],[vd[1]-0.002,vd[2]+0.002],[vd[1]-0.002,vd[3]-0.002],[vd[0]+0.002,vd[3]-0.002]]], LV.GF.ceil, LV.FF.ffl-0.004, M('wallPaint')); edge.userData.ffFloor = true; intG.add(edge);
+    if (!Dz.voidEdgeFinish) { const edge = prism(hole, [[[vd[0]+0.002,vd[2]+0.002],[vd[1]-0.002,vd[2]+0.002],[vd[1]-0.002,vd[3]-0.002],[vd[0]+0.002,vd[3]-0.002]]], LV.GF.ceil, LV.FF.ffl-0.004, M('wallPaint')); edge.userData.ffFloor = true; intG.add(edge); }
     const ffCeil = prism(S.ringsFF['0.45'], [], LV.FF.ceil, LV.FF.ceil+0.02, M('ceiling')); ffCeil.castShadow = false; ffCeil.userData.lvl='FF'; intG.add(ffCeil); ceilingParts.push(ffCeil); archRoofParts.push(ffCeil);
     applyInterior(curInt);
   });
@@ -1587,10 +1588,11 @@ fetch('design.json').then(r => r.json()).then(Dz => {
     const hingeA0 = d.kind==='glass' ? true : !(d.swing<=0);
     const ha = hingeA0 ? d.a0 : d.a1, pv = new THREE.Group();
     if (d.axis==='x') pv.position.set(ha, d.y0||0, d.pos); else pv.position.set(d.pos, d.y0||0, ha);
+    if (d.pivot) pv.position.set(...d.pivot);
     pv.userData.lvl = d.lvl; intG.add(pv); attachTo(pv, leafMesh);
     let ang;
     if (d.axis==='x') ang = hingeA0 ? -side*Math.PI/2 : side*Math.PI/2; else ang = hingeA0 ? side*Math.PI/2 : -side*Math.PI/2;
-    const rec = { d, g: pv, kind:'door', ang: ang*0.95, v: 0, target: 0, c: d.axis==='x' ? [(d.a0+d.a1)/2, d.pos] : [d.pos, (d.a0+d.a1)/2], y: d.y0||0 };
+    const rec = { d, g: pv, kind:'door', ang: Math.sign(ang)*(d.openAngle ?? Math.PI*0.475), v: d.initial ?? 0, target: d.initial ?? 0, c: d.axis==='x' ? [(d.a0+d.a1)/2, d.pos] : [d.pos, (d.a0+d.a1)/2], y: d.y0||0 };
     DOORA.push(rec); TOG.set(leafMesh, rec); return pv;
   }
   function attachTo(pv, mesh){ mesh.position.sub(pv.position); pv.add(mesh); if (pv.children.length>1) TOG.set(mesh, TOG.get(pv.children[0])); }
@@ -1599,7 +1601,7 @@ fetch('design.json').then(r => r.json()).then(Dz => {
     const t = d.kind==='glass' ? 0.008 : 0.045, a0 = d.a0, a1 = d.a1, y0 = d.y0||0;
     const pc = (d.face!=null) ? d.face - d.fdir*(d.kind==='glass' ? 0.06 : t/2) : d.pos, dh = d.kind==='glass' ? 2.08 : (d.dh||2.40);
     d = Object.assign({}, d, { pos: pc });
-    const leaf = d.axis==='z' ? [d.pos-t/2, d.pos+t/2, y0+0.01, y0+dh, a0+0.006, a1-0.006] : [a0+0.006, a1-0.006, y0+0.01, y0+dh, d.pos-t/2, d.pos+t/2];
+    const leaf = d.leafBounds || (d.axis==='z' ? [d.pos-t/2, d.pos+t/2, y0+0.01, y0+dh, a0+0.006, a1-0.006] : [a0+0.006, a1-0.006, y0+0.01, y0+dh, d.pos-t/2, d.pos+t/2]);
     if (d.kind==='glass'){
       const g = bx(leaf, M('glassSatin')); g.userData.door = true; const gpv = pivotDoor(d, g, d.fdir||1); g.userData.spec = `${d.room} – glass door, 8 mm toughened satin glass, 900 × 2080 (Firma Szach), matt-black hinges + handle, WC lock`;
       const fw = 0.045, fz = d.axis==='x' ? [d.face-d.fdir*0.148, d.face-d.fdir*0.002] : [d.face-d.fdir*0.148, d.face-d.fdir*0.002];
@@ -1648,11 +1650,12 @@ fetch('design.json').then(r => r.json()).then(Dz => {
   }
   // movers: HS sliding leaves, front door (hinged), garage door (lift)
   for (const mv of Dz.movers){
-    const g = MOVE[mv.grp]; if (!g) continue;
-    if (mv.kind==='slide'){ const rec = { g, kind:'slide', dx: mv.dx, v:0, target:0, secs: mv.secs||2.5, c: mv.c }; LIFTS.push(rec); g.traverse(o => { if (o.isMesh) TOG.set(o, rec); }); }
+    const g = MOVE[mv.grp]; if (!g) continue; if (mv.lvl) g.userData.lvl = mv.lvl;
+    if (mv.kind==='slide'){ const rec = { g, kind:'slide', dx: mv.dx, v:mv.initial ?? 0, target:mv.initial ?? 0, secs: mv.secs||2.5, c: mv.c }; g.position.x = rec.dx*rec.v; LIFTS.push(rec); g.traverse(o => { if (o.isMesh) TOG.set(o, rec); }); }
     else if (mv.kind==='door'){ const pv = new THREE.Group(); pv.position.set(...mv.pivot); intG.add(pv); pv.attach(g); const rec = { g: pv, kind:'door', ang: mv.ang, v:0, target:0, c: mv.c, y: 0 }; DOORA.push(rec); g.traverse(o => { if (o.isMesh) TOG.set(o, rec); }); }
     else if (mv.kind==='lift'){ const pv = new THREE.Group(); pv.position.set(...mv.pivot); intG.add(pv); pv.attach(g); const rec = { g: pv, kind:'lift', ang: mv.ang, axis: mv.axis||'x', v:0, target:0, secs: mv.secs||4, c: mv.c }; LIFTS.push(rec); g.traverse(o => { if (o.isMesh) TOG.set(o, rec); }); }
   }
+  for (const rec of DOORA) if (rec.d?.initial) rec.g.rotation.y = rec.ang*rec.v;
   // the veneer panel over a hidden door belongs to its leaf – hang it on the same pivot
   { const bb = new THREE.Box3();
     for (const rec of DOORA){ if (!rec.d) continue; const d = rec.d, pl = d.face!=null ? d.face : d.pos, y0 = d.y0||0; const grab = [];
